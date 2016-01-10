@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/pages/" p:suffix=".jsp" />
+	
+	<bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+		<property name="url" value="jdbc:mysql://localhost:3306/project"/>
+		<property name="username" value="root"/>
+		<property name="password" value=""/>
+	</bean>
+	
+	<bean id="mySessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean">
+		<property name="dataSource" ref="myDataSource" />
+		<property name="annotatedClasses">
+			<list>
+				<value>com.practice.tms.domain.Employee</value>
+				<value>com.practice.tms.domain.Feedback</value>
+				<value>com.practice.tms.domain.Location</value>
+				<value>com.practice.tms.domain.Enrollment</value>
+				<value>com.practice.tms.domain.Trainings</value>
+				<value>com.practice.tms.domain.TrainingInformation</value>
+				<value>com.practice.tms.domain.Schedule</value>
+			</list>
+		</property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id="myEmployeeDAO" class="com.practice.tms.dao.LoginDaoImpl">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	<bean id="myRegistrationDAO" class="com.practice.tms.dao.RegistrationDaoImpl">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	
+	
+	<bean id="myRegistrationService" class="com.practice.tms.service.RegistrationServiceImpl">
+	  <property name="regDAOImpl" ref="myRegistrationDAO" />
+	</bean>
+	<bean id="myLoginService" class="com.practice.tms.service.LoginServiceImpl">
+	  <property name="loginDAOImpl" ref="myEmployeeDAO" />
+	</bean>
+	
+	<bean id="myScheduleDAO" class="com.practice.tms.dao.ScheduleDaoImpl">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	<bean id="myScheduleService" class="com.practice.tms.service.ScheduleServiceImpl">
+	  <property name="scheduleDaoImpl" ref="myScheduleDAO" />
+	</bean>
+	
+	<bean name="/user/c*.htm" class="com.practice.tms.web.CommonController" >
+	  <property name="loginDAOService" ref="myLoginService" />
+	  <property name="registrationDAOService" ref="myRegistrationService" />
+	  <property name="scheduleDaoService" ref="myScheduleService" />
+	 </bean>
+	
+	<bean id="myUserDAO" class="com.practice.tms.dao.VenueDaoImpl">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	<bean id="trainingDao" class="com.practice.tms.dao.TrainingDaoImpl">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	<bean id="trainingAdminDao" class="com.practice.tms.dao.TrainingAdminDaoImpl">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	<bean id="projectManagerDao" class="com.practice.tms.dao.ProjectManagerDaoImpl">
+		<property name="sessionFactory" ref="mySessionFactory"/>
+	</bean>
+	
+	<bean id="myUserService" class="com.practice.tms.service.AddVenueServiceImpl">
+		<property name="venueDAOImpl" ref="myUserDAO"/>
+	</bean>
+	<bean id="trainingService" class="com.practice.tms.service.TrainingServiceImpl">
+		<property name="trainingDao" ref="trainingDao"/>
+	</bean>
+	<bean id="iTrainingAdminService" class="com.practice.tms.service.TrainingAdminServiceImpl">
+		<property name="trainingAdminDao" ref="trainingAdminDao"/>
+	</bean>
+	<bean id="iProjectManagerService" class="com.practice.tms.service.ProjectManagerServiceImpl">
+		<property name="projectManagerDao" ref="projectManagerDao"/>
+	</bean>
+	
+	<bean name="/user/e*.htm" class="com.practice.tms.web.EmployeeController" >
+		<property name="trainingService" ref="trainingService"/>
+	</bean>
+	<bean name="/user/p*.htm" class="com.practice.tms.web.ProjectManagerController" >
+		<property name="iProjMangServ" ref="iProjectManagerService" />
+	</bean>
+	<bean name="/user/t*.htm" class="com.practice.tms.web.AdminController" >
+		<property name="addVenueServ" ref="myUserService" />
+		<property name="iTrngAdminService" ref="iTrainingAdminService" />
+	</bean>
+</beans>
